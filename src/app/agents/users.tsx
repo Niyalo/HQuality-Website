@@ -1,17 +1,19 @@
 "use client"
 import React from 'react';
 import { useEffect, useState } from 'react';
-import { client } from '../../../../sanity/sanity-utils';
+import { client } from '../../../sanity/sanity-utils';
 import Image from 'next/image';
 
-// Define proper TypeScript interfaces
+// --- UPDATED INTERFACES ---
+interface SanityAsset {
+  _ref: string;
+  _type: 'reference';
+  url?: string; // This is what we'll get from asset->{url}
+}
+
 interface UserImage {
-  url?: string;
-  file?: {
-    asset?: {
-      url?: string;
-    };
-  };
+  _type: 'image';
+  asset: SanityAsset; // The reference to the actual image file with url
 }
 
 interface User {
@@ -21,12 +23,13 @@ interface User {
   lastname: string;
   contact?: number;
   email: string;
-  user_img?: UserImage[];
+  user_img?: UserImage; // Changed to a single UserImage object
   created_at: string;
 }
+// --- END UPDATED INTERFACES ---
+
 
 function UserList() {
-  // Explicitly type the state variables
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -34,9 +37,6 @@ function UserList() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // GROQ query to fetch all documents of type 'user'
-        // and select specific fields.
-        // For 'user_img', we fetch the entire image object for urlFor helper.
         const query = `*[_type == "user"]{
           _id,
           role,
@@ -44,14 +44,17 @@ function UserList() {
           lastname,
           contact,
           email,
-          user_img, // Fetch the entire image object
+          user_img { // Access the user_img field
+            asset->{ // Follow the 'asset' reference
+              url // Select the 'url' property from the asset
+            }
+          },
           created_at
-        } | order(created_at desc)`; // Order by most recently created
+        } | order(created_at desc)`; 
 
-        const data: User[] = await client.fetch(query); // Cast the fetched data
+        const data: User[] = await client.fetch(query);
         setUsers(data);
       } catch (err) {
-        // Ensure err is treated as an Error object
         setError(err instanceof Error ? err : new Error(String(err)));
         console.error("Failed to fetch users:", err);
       } finally {
@@ -60,7 +63,7 @@ function UserList() {
     };
 
     fetchUsers();
-  }, []); // Empty dependency array means this effect runs once on component mount
+  }, []);
 
   if (loading) {
     return <p>Loading users...</p>;
@@ -91,31 +94,35 @@ function UserList() {
               alignItems: 'center',
               padding: '15px',
               textAlign: 'center',
-              backgroundColor: user.role === 'admin' ? '#f0f8ff' : '#fff', // Differentiate roles visually
+              backgroundColor: user.role === 'admin' ? '#f0f8ff' : '#fff',
             }}
           >
-            {user.user_img && user.user_img.length > 0 && (
+            {user.user_img?.asset?.url ? ( // Check for the URL
               <Image
-                src={user.user_img[0].url || user.user_img[0].file?.asset?.url || ''}
+                src={user.user_img.asset.url}
                 alt={`${user.firstname} ${user.lastname}`}
                 width={120}
                 height={120}
-                className="rounded-full object-cover mb-4 border-4"
+                className="rounded-full w-24 h-24 object-cover mb-4 border-4 overflow-hidden"
                 style={{
                   borderColor: user.role === 'admin' ? '#ff9800' : '#4caf50'
                 }}
               />
+            ) : (
+              <div className="w-32 h-32 mb-4 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                No Image
+              </div>
             )}
             <h2 style={{ fontSize: '1.4em', margin: '0 0 5px 0', color: '#333' }}>
               {user.firstname} {user.lastname}
             </h2>
             <p style={{ margin: '5px 0', color: '#007bff', fontWeight: 'bold' }}>
-              Role: {user.role.charAt(0).toUpperCase() + user.role.slice(1)} {/* Capitalize role */}
+              Role: {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
             </p>
             <p style={{ margin: '3px 0', color: '#555' }}>
               Email: {user.email}
             </p>
-            {user.contact && ( // Only display contact if it exists
+            {user.contact && (
               <p style={{ margin: '3px 0', color: '#555' }}>
                 Contact: {user.contact}
               </p>
