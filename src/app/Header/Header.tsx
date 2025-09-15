@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import React from "react";
 import Image from 'next/image';
+import Link from "next/link";
 
 
 
@@ -32,27 +33,27 @@ const Header = () => {
             <li>
               <a
                 className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href="#"
+                
               >
-                Properties
+                                <Link href= "/properties">Properties</Link>
+
               </a>
             </li>
 
             <li>
               <a
                 className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href="#"
               >
-                Clients
+                <Link href= "/clients">Clients</Link>
               </a>
             </li>
 
             <li>
               <a
                 className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href="#"
+                href=""
               >
-                Agents
+                <Link href={"/agents"}>Agents</Link>
               </a>
             </li>
 
