@@ -1,12 +1,12 @@
-import { defineField } from "sanity"
+import { defineField, defineType } from "sanity"
 import agent from "./agent"
 
-const property = {
+export default defineType({
     name: "property",
     title: "Property",
     type: "document",
-    fields:[
-         defineField({
+    fields: [
+        defineField({
             name: 'property_id',
             title: 'Property ID',
             type: 'number',
@@ -32,27 +32,16 @@ const property = {
         }),
         defineField({
             name: 'built_in',
-            title: 'Built In', 
+            title: 'Built In',
             type: 'date',
             validation: Rule => Rule.required(),
         }),
         defineField({
             name: 'property_img',
-            title: 'Property Image',
+            title: 'Property Images',
             type: 'array',
-            of:[
-                {
-                    type: 'object',
-                    fields: [
-                        {name: 'url', type: 'url', title: 'URL'},
-                        {name: 'file', type: 'file', title: 'File'},
-                    ]
-                }
-            ],
-            validation: Rule => Rule.required().min(3).error("Minimum 3 images required"),
+            of: [{ type: 'image' }],
+            validation: Rule => Rule.required().min(1).error("Minimum 1 image required"),
         }),
     ]
-
-}
-
-export default property
+})
