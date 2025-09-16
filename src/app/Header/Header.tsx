@@ -31,30 +31,22 @@ const Header = () => {
         <nav aria-label="Global" className="hidden md:block">
           <ul className="flex items-center gap-6 text-sm">
             <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                
-              >
-                                <Link href= "/properties">Properties</Link>
+             
+                <Link className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href= "/properties">Properties</Link>
 
-              </a>
+              
             </li>
 
             <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-              >
-                <Link href= "/clients">Clients</Link>
-              </a>
+              
+                <Link className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href= "/clients">Clients</Link>
+              
             </li>
 
             <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href=""
-              >
-                <Link href={"/agents"}>Agents</Link>
-              </a>
+             
+                <Link className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75" href={"/agents"}>Agents</Link>
+              
             </li>
 
             
