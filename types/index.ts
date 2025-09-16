@@ -24,3 +24,26 @@ export interface Property {
   clients?: ClientInfo[];
   property_img?: { asset: { url: string } }[];
 }
+
+export interface ClientContract {
+  _key: string;
+  title: string;
+  file: {
+    asset: {
+      _ref: string;
+      url: string;
+    }
+  }
+}
+
+export interface Client {
+  _id: string;
+  first_name: string;
+  last_name: string;
+  contact?: number;
+  email: string;
+  address: string;
+  user_img?: { asset?: { url?: string } };
+  agent?: AgentInfo; // Uses the expanded AgentInfo type
+  contracts?: ClientContract[]; // Uses an array of the expanded Contract type
+}
