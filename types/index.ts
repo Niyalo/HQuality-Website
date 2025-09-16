@@ -1,20 +1,18 @@
-// types/index.ts
-
-// The shape of an expanded Agent reference
+// The shape of an expanded Agent reference from a GROQ query
 export interface AgentInfo {
-  _id: string; // Note: Sanity returns _id on expanded references
+  _id: string;
   firstname: string;
   lastname: string;
 }
 
-// The shape of an expanded Client reference
+// The shape of an expanded Client reference from a GROQ query
 export interface ClientInfo {
   _id: string;
   first_name: string;
   last_name: string;
 }
 
-// The main Property interface that reflects your GROQ query
+// The main Property interface that reflects your complete GROQ query
 export interface Property {
   _id: string;
   address: string;
@@ -22,7 +20,7 @@ export interface Property {
   square_footage: number;
   built_in: string;
   property_id: number;
-  agent?: AgentInfo; // Uses the expanded AgentInfo type
-  clients?: ClientInfo[]; // Uses an array of the expanded ClientInfo type
+  agent?: AgentInfo;
+  clients?: ClientInfo[];
   property_img?: { asset: { url: string } }[];
 }

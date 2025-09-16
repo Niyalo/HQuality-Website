@@ -10,12 +10,8 @@ import 'swiper/css/pagination';
 import { PencilIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/solid';
 import AddPropertyModal from "../addForms/AddPropertyModel";
 
-// --- IMPORT THE CENTRALIZED TYPE ---
-import type { Property } from "../../../types"; // Adjust path as needed
-
-// --- REMOVE THE LOCAL INTERFACE DEFINITIONS ---
-// interface ClientInfo { ... }
-// interface Property { ... }
+// Import the shared, centralized types
+import type { Property } from "../../../types"; // Adjust path if needed
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -27,6 +23,7 @@ export default function Properties() {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+        // This query correctly expands the image asset to get the URL
         const query = `*[_type == "property"]{
           ...,
           property_img[]{ asset->{url} },
@@ -62,7 +59,6 @@ export default function Properties() {
   };
   
   const handleSuccess = (newOrUpdatedProperty: Property) => {
-    // The query for a single updated doc might not expand refs, so we merge
     if (editingProperty) {
       setProperties(prev => prev.map(p => p._id === newOrUpdatedProperty._id ? { ...p, ...newOrUpdatedProperty } : p));
     } else {
@@ -106,7 +102,30 @@ export default function Properties() {
                   <TrashIcon className="w-5 h-5 text-red-500" />
                 </button>
               </div>
-              {/* ... Swiper and other JSX ... */}
+              {property.property_img && property.property_img.length > 0 ? (
+                <Swiper modules={[Navigation, Pagination]} navigation pagination={{ clickable: true }} className="w-full h-48">
+                  {property.property_img.map((img, index) => (
+                    img.asset?.url && ( // Add a check to ensure img.asset.url exists
+                      <SwiperSlide key={index}>
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={img.asset.url} // Access the URL correctly
+                            alt={`Property at ${property.address}`}
+                            fill
+                            style={{ objectFit: "cover" }}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={index === 0} // Prioritize loading the first image
+                          />
+                        </div>
+                      </SwiperSlide>
+                    )
+                  ))}
+                </Swiper>
+              ) : (
+                <div className="relative w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                  <p>No Image Available</p>
+                </div>
+              )}
               <div className="p-4 flex-grow flex flex-col">
                 <h2 className="text-xl font-semibold mb-1 text-gray-800">{property.address}</h2>
                 <p className="text-gray-700 text-sm mb-1"><strong>Price:</strong> ${property.price.toLocaleString()}</p>
