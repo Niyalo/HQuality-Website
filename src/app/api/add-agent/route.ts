@@ -13,17 +13,17 @@ const sanityClient = createClient(config);
 
 export async function POST(request: Request) {
   try {
-    const { firstname, lastname, email, contact, imageAssetId, imageBase64, imageName, imageType } = await request.json();
+    const { first_name, last_name, email, contact, imageAssetId, imageBase64, imageName, imageType } = await request.json();
 
-    if (!firstname || !lastname || !email) {
+    if (!first_name || !last_name || !email) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const newAgentDocument: any = {
       _type: 'user',
-      firstname,
-      lastname,
+      first_name,
+      last_name,
       email,
       role: 'agent', // Hard-code the role to 'agent'
       created_at: new Date().toISOString(),

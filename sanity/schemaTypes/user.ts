@@ -1,76 +1,68 @@
-import { defineField, fieldNeedsEscape } from "sanity"
+import { defineField } from "sanity"
 
 const user = {
     name: "user",
-    title: "user",
-    type: "document", 
-    fields: [
-        defineField({
-            name: "role",
-            title: "Role",
-            type: "string",
-            description: "Check if user is an admin or agent",
-            options: {
-            list: [
-                { title: 'Administrator', value: 'admin' },
-                { title: 'Agent', value: 'agent' },
-            ],
-            layout: 'radio',
-            },
-            validation: Rule => Rule.required(),
-            
-            //readonly: true
-            //hidden: true
+    title: "User",
+    type: "document",
+    fields:[
+         defineField({
+            name: 'agent_id',
+            title: 'Agent ID',
+            type: 'number',
+            // Only show this field if the user's role is 'agent'
+            hidden: ({ document }) => document?.role !== 'agent',
         }),
         defineField({
-            name: 'firstname',
+            name: 'first_name', 
             title: 'First Name',
             type: 'string',
             validation: Rule => Rule.required(),
         }),
         defineField({
-            name: 'lastname',
+            name: 'last_name', 
             title: 'Last Name',
             type: 'string',
             validation: Rule => Rule.required(),
         }),
-        
-        defineField({
-            name:'contact',
-            title:'Contact Number',
-            type: 'number'
-        }),
         defineField({
             name: 'email',
             title: 'Email',
+            type: 'email',
+            validation: Rule => Rule.required()
+        }),
+        defineField({
+            name: 'role',
+            title: 'Role',
             type: 'string',
-            validation: Rule => Rule.required().email(),
+            options: {
+                list: [
+                    { title: 'Agent', value: 'agent' },
+                    { title: 'Admin', value: 'admin' },
+                ],
+                layout: 'radio'
+            },
+            initialValue: 'agent',
+            validation: Rule => Rule.required(),
+        }),
+        defineField({
+            name: 'contact',
+            title: 'Contact',
+            type: 'number',
         }),
         defineField({
             name: 'user_img',
             title: 'User Image',
-            type: 'array',
-            of:[
-                {
-                    type: 'object',
-                    fields: [
-                        {name: 'url', type: 'url', title: 'URL'},
-                        {name: 'file', type: 'file', title: 'File'},
-                    ]
-                }
-            ],
-            validation: Rule => Rule.required(),
+            type: 'image',
+            options: { hotspot: true },
         }),
         defineField({
             name: 'created_at',
             title: 'Created At',
             type: 'datetime',
+            initialValue: () => new Date().toISOString(),
             readOnly: true,
-            initialValue: (new Date()).toISOString(),
-        })
-
+        }),
     ]
-
-
 }
-export default user
+
+export default user;

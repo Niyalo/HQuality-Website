@@ -1,4 +1,4 @@
-import { defineField, fieldNeedsEscape, validation } from "sanity"
+import { defineField } from "sanity"
 
 const client = {
     name: "client",
@@ -18,22 +18,46 @@ const client = {
             validation: Rule => Rule.required(),
         }),
         defineField({
-            name: 'contact',
-            title: 'Contact',
-            type: 'number',
-            validation: Rule => Rule.required(),
-        }),
-        defineField({
             name: 'email',
             title: 'Email',
             type: 'email',
-            validation: Rule => Rule.required(),
+            validation: Rule => Rule.required()
         }),
         defineField({
             name: 'address',
             title: 'Address',
-            type: 'slug',
-            validation: Rule => Rule.required(),
+            type: 'string', 
+	        validation: Rule => Rule.required(),
+        }),
+        // --- ADDED AGENT REFERENCE ---
+        defineField({
+            name: 'agent',
+            title: 'Assigned Agent',
+            type: 'reference',
+            to: [{ type: 'user' }], // References a 'user' document
+            options: {
+                filter: 'role == "agent"', // Filters to only show agents
+            },
+        }),
+        // --- ADDED CONTRACTS ARRAY ---
+        defineField({
+            name: 'contracts',
+            title: 'Contracts',
+            type: 'array',
+            of: [{
+                name: 'contract',
+                title: 'Contract',
+                type: 'object',
+                fields: [
+                    { name: 'title', type: 'string', title: 'File Title / Description', validation: Rule => Rule.required() },
+                    { name: 'file', type: 'file', title: 'Contract File', validation: Rule => Rule.required() }
+                ]
+            }]
+        }),
+        defineField({
+            name: 'contact',
+            title: 'Contact',
+            type: 'number',
         }),
         defineField({
             name: 'user_img',

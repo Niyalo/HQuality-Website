@@ -4,17 +4,16 @@ import Image from 'next/image';
 import { XCircleIcon } from '@heroicons/react/24/solid';
 
 // Import the centralized, shared Property type
-import type { Property } from '../../../types'; // Adjust this path to your `types/index.ts` file
+import type { Property } from '../../../types'; 
 
 // These interfaces are for the data fetched for the dropdowns, which is fine to keep local.
-interface Agent { _id: string; firstname: string; lastname: string; }
+interface Agent { _id: string; first_name: string; last_name: string; }
 interface Client { _id: string; first_name: string; last_name: string; }
 
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newOrUpdatedProperty: unknown) => void;
-  // Use the imported, consistent Property type for the prop
+  onSuccess: (property: Property) => void;
   propertyToEdit?: Property | null;
 }
 
@@ -68,7 +67,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, propertyT
     if (isOpen) {
       const fetchData = async () => {
         try {
-          const agentQuery = `*[_type == "user" && role == "agent"]{_id, firstname, lastname}`;
+          const agentQuery = `*[_type == "user" && role == "agent"]{_id, first_name, last_name}`;
           const clientQuery = `*[_type == "client"]{_id, first_name, last_name}`;
           const [agents, clients] = await Promise.all([
             client.fetch<Agent[]>(agentQuery),
@@ -198,7 +197,7 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, propertyT
             <label htmlFor="agent" className="block text-sm font-medium text-gray-700">Assign to Agent</label>
             <select id="agent" value={selectedAgentId} onChange={(e) => setSelectedAgentId(e.target.value)} className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
               <option value="">-- No Agent --</option>
-              {availableAgents.map((agent) => (<option key={agent._id} value={agent._id}>{agent.firstname} {agent.lastname}</option>))}
+              {availableAgents.map((agent) => (<option key={agent._id} value={agent._id}>{agent.first_name} {agent.last_name}</option>))}
             </select>
           </div>
           <div>
