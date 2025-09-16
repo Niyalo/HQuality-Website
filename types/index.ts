@@ -1,9 +1,24 @@
 // The shape of an expanded Agent reference from a GROQ query
+
+export interface User {
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: 'agent' | 'admin';
+  agent_id?: number;
+  contact?: number;
+  user_img?: { asset?: { url?: string } };
+  created_at?: string;
+}
+
+
 export interface AgentInfo {
   _id: string;
-  firstname: string;
-  lastname: string;
+  first_name: string;
+  last_name: string;
 }
+
 
 // The shape of an expanded Client reference from a GROQ query
 export interface ClientInfo {

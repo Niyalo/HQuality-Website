@@ -1,22 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { SanityImageAssetDocument } from 'next-sanity';
-import { client } from '../../../sanity/sanity-utils'; // Your read-only client for uploads
+import { client } from '../../../sanity/sanity-utils';
+
+import type { User } from '../../../types'; 
 
 interface AddAgentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newUser: any) => void;
+  // --- FIX ---
+  onSuccess: (user: User) => void; // Was (user: any)
+  userToEdit?: User | null;
 }
 
-export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps) {
-  const [firstname, setFirstname] = useState('');
-  const [lastname, setLastname] = useState('');
+export default function AddAgentModal({ isOpen, onClose, onSuccess, userToEdit }: AddAgentModalProps) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
+  const [agentId, setAgentId] = useState<number | undefined>();
   const [contact, setContact] = useState<number | undefined>();
+  const [role, setRole] = useState<'agent' | 'admin'>('agent');
   const [image, setImage] = useState<File | null>(null);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const isEditMode = !!userToEdit;
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditMode && userToEdit) {
+        setFirstName(userToEdit.first_name);
+        setLastName(userToEdit.last_name);
+        setEmail(userToEdit.email);
+        setContact(userToEdit.contact);
+        setRole(userToEdit.role);
+        setAgentId(userToEdit.agent_id);
+      } else {
+        // Reset form for "Add" mode
+        setFirstName(''); setLastName(''); setEmail(''); setContact(undefined);
+        setRole('agent'); setAgentId(undefined);
+      }
+      setImage(null); setError(null);
+    }
+  }, [isOpen, isEditMode, userToEdit]);
 
   if (!isOpen) return null;
 
@@ -25,70 +51,94 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
     setIsSubmitting(true);
     setError(null);
 
-    if (!firstname || !lastname || !email) {
-      setError('First Name, Last Name, and Email are required.');
+    if (!firstName || !lastName || !email || (role === 'agent' && !agentId)) {
+      setError('All fields, including Agent ID for agents, are required.');
       setIsSubmitting(false);
       return;
     }
 
     try {
-      let imageAsset: SanityImageAssetDocument | undefined = undefined;
+      let imageAsset: SanityImageAssetDocument | undefined;
       if (image) {
         imageAsset = await client.assets.upload('image', image);
       }
-
-      const agentData = {
-        firstname,
-        lastname,
+      
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
         email,
+        agent_id: agentId,
         contact,
+        role,
         imageAssetId: imageAsset?._id,
       };
 
-      const response = await fetch('/api/add-agent', {
-        method: 'POST',
+      const response = await fetch(isEditMode ? '/api/edit-agent' : '/api/add-agent', {
+        method: isEditMode ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(agentData),
+        body: JSON.stringify({ ...payload, userId: isEditMode ? userToEdit?._id : undefined }),
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.message || 'Failed to create agent.');
-      }
+      if (!response.ok) throw new Error(await response.text());
 
-      const newAgent = await response.json();
-      onSuccess(newAgent);
+      const result = await response.json();
+      onSuccess(result);
       onClose();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (err: any) { setError(err.message); } finally { setIsSubmitting(false); }
   };
+  
+  const inputBaseClass = "block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-6">Add New Agent</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4">
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">{isEditMode ? 'Edit User' : 'Add New Agent'}</h2>
+        <form id="agentForm" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <input type="text" placeholder="First Name" value={firstname} onChange={(e) => setFirstname(e.target.value)} className="w-full border border-gray-300 rounded-md p-2" required />
-            <input type="text" placeholder="Last Name" value={lastname} onChange={(e) => setLastname(e.target.value)} className="w-full border border-gray-300 rounded-md p-2" required />
+            <div>
+              <label className="text-sm font-medium">First Name</label>
+              <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)} required className={inputBaseClass} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Last Name</label>
+              <input type="text" value={lastName} onChange={e => setLastName(e.target.value)} required className={inputBaseClass} />
+            </div>
           </div>
-          <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-md p-2" required />
-          <input type="text" inputMode="numeric" placeholder="Contact (Optional)" value={contact || ''} onChange={(e) => setContact(Number(e.target.value.replace(/\D/g, '')))} className="w-full border border-gray-300 rounded-md p-2" />
           <div>
-            <label htmlFor="agent-image" className="block text-sm font-medium text-gray-700">Agent Image (Optional)</label>
-            <input type="file" id="agent-image" onChange={(e) => setImage(e.target.files ? e.target.files[0] : null)} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold" accept="image/*" />
+            <label className="text-sm font-medium">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className={inputBaseClass} />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <div className="flex justify-end space-x-4 pt-4">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
-            <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white rounded-md">
-              {isSubmitting ? 'Adding...' : 'Add Agent'}
-            </button>
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+              <label className="text-sm font-medium">Role</label>
+              <select value={role} onChange={e => setRole(e.target.value as 'agent' | 'admin')} className={inputBaseClass}>
+                <option value="agent">Agent</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            {role === 'agent' && (
+              <div>
+                <label className="text-sm font-medium">Agent ID</label>
+                <input type="text" inputMode="numeric" value={agentId || ''} onChange={e => setAgentId(Number(e.target.value.replace(/\D/g, '')))} required={role === 'agent'} className={inputBaseClass} />
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="text-sm font-medium">Contact (Optional)</label>
+            <input type="text" inputMode="numeric" value={contact || ''} onChange={e => setContact(Number(e.target.value.replace(/\D/g, '')))} className={inputBaseClass} />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Profile Image</label>
+            <input type="file" onChange={e => setImage(e.target.files ? e.target.files[0] : null)} accept="image/*" className="mt-1 block w-full text-sm"/>
           </div>
         </form>
+        <div className="mt-8 flex justify-end items-center space-x-4 border-t pt-5">
+          {error && <p className="text-red-500 text-sm mr-auto">{error}</p>}
+          <button type="button" onClick={onClose} disabled={isSubmitting} className="px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+          <button type="submit" form="agentForm" disabled={isSubmitting} className="px-4 py-2 bg-blue-600 text-white rounded-md">
+            {isSubmitting ? 'Saving...' : 'Save User'}
+          </button>
+        </div>
       </div>
     </div>
   );

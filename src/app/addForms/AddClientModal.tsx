@@ -12,7 +12,7 @@ interface Agent { _id: string; firstname: string; lastname: string; }
 interface AddClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (client: any) => void;
+  onSuccess: (client: Client) => void; 
   clientToEdit?: Client | null;
 }
 

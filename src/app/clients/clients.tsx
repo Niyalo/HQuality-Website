@@ -112,7 +112,7 @@ export default function ClientList() {
               <div className="text-sm space-y-1 text-gray-700 border-t pt-3 mt-auto">
                 <p><strong>Contact:</strong> {clientItem.contact || 'N/A'}</p>
                 <p className="truncate"><strong>Address:</strong> {clientItem.address}</p>
-                <p><strong>Agent:</strong> {clientItem.agent ? `${clientItem.agent.firstname} ${clientItem.agent.lastname}` : 'Unassigned'}</p>
+                <p><strong>Agent:</strong> {clientItem.agent ? `${clientItem.agent.first_name} ${clientItem.agent.last_name}` : 'Unassigned'}</p>
               </div>
               <div className="flex justify-end space-x-2 mt-3">
                 <button onClick={() => handleOpenEditModal(clientItem)} className="p-2 hover:bg-gray-100 rounded-full"><PencilIcon className="w-5 h-5 text-gray-600"/></button>
