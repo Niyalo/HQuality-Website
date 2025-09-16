@@ -13,6 +13,7 @@
     "@sanity/client": "^7.11.1",
     "@sanity/vision": "^4.6.1",
     "next": "15.5.2",
+    "next-auth": "^4.24.11",
     "next-sanity": "^10.0.16",
     "react": "19.1.0",
     "react-dom": "19.1.0",
