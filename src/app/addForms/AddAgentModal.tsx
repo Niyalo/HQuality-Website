@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import type { SanityImageAssetDocument } from 'next-sanity';
-import { client } from '../../../sanity/sanity-utils'; // Your read-only client for uploads
 
 interface AddAgentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newUser: any) => void;
+  onSuccess: (newUser: unknown) => void;
 }
 
 export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentModalProps) {
@@ -32,18 +30,28 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
     }
 
     try {
-      let imageAsset: SanityImageAssetDocument | undefined = undefined;
+      // Convert image to data URL (base64) on the client and send metadata to server
+      let imageBase64: string | undefined = undefined;
+      let imageName: string | undefined = undefined;
+      let imageType: string | undefined = undefined;
       if (image) {
-        imageAsset = await client.assets.upload('image', image);
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => { reader.abort(); reject(new Error('Failed to read image file')); };
+          reader.onload = () => resolve(String(reader.result));
+          reader.readAsDataURL(image);
+        });
+        imageName = image.name;
+        imageType = image.type;
       }
 
-      const agentData = {
-        firstname,
-        lastname,
-        email,
-        contact,
-        imageAssetId: imageAsset?._id,
-      };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agentData: any = { firstname, lastname, email, contact };
+      if (imageBase64) {
+        agentData.imageBase64 = imageBase64;
+        agentData.imageName = imageName;
+        agentData.imageType = imageType;
+      }
 
       const response = await fetch('/api/add-agent', {
         method: 'POST',
@@ -59,8 +67,9 @@ export default function AddAgentModal({ isOpen, onClose, onSuccess }: AddAgentMo
       const newAgent = await response.json();
       onSuccess(newAgent);
       onClose();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setError((err as any).message || String(err));
     } finally {
       setIsSubmitting(false);
     }

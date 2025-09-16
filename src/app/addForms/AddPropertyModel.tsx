@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import type { SanityImageAssetDocument } from 'next-sanity';
 import { client } from '../../../sanity/sanity-utils';
 import Image from 'next/image';
 import { XCircleIcon } from '@heroicons/react/24/solid';
@@ -14,7 +13,7 @@ interface Client { _id: string; first_name: string; last_name: string; }
 interface AddPropertyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (newOrUpdatedProperty: any) => void;
+  onSuccess: (newOrUpdatedProperty: unknown) => void;
   // Use the imported, consistent Property type for the prop
   propertyToEdit?: Property | null;
 }
@@ -127,17 +126,29 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, propertyT
     }
 
     try {
-      let imageAssets: SanityImageAssetDocument[] = [];
+      // Convert selectedFiles to data URLs for server-side upload
+      const imageDataUrls: string[] = [];
       if (selectedFiles.length > 0) {
-        const uploadPromises = selectedFiles.map(image => client.assets.upload('image', image));
-        imageAssets = await Promise.all(uploadPromises);
+        const readFile = (file: File) => new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => { reader.abort(); reject(new Error('Failed to read image file')); };
+          reader.onload = () => resolve(String(reader.result));
+          reader.readAsDataURL(file);
+        });
+        for (const f of selectedFiles) {
+          const dataUrl = await readFile(f);
+          imageDataUrls.push(dataUrl);
+        }
       }
 
       const propertyData = {
-        address, price, square_footage: squareFootage, built_in: builtIn,
+        address,
+        price,
+        square_footage: squareFootage,
+        built_in: builtIn,
         agentId: selectedAgentId || null,
         clientIds: selectedClientIds,
-        imageAssetIds: imageAssets.map(asset => asset._id),
+        imageDataUrls, // server will upload
       };
 
       const endpoint = isEditMode ? `/api/edit-property` : '/api/add-property';
@@ -154,7 +165,10 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, propertyT
       const result = await response.json();
       onSuccess(result);
       onClose();
-    } catch (err: any) { setError(err.message); } finally { setIsSubmitting(false); }
+    } catch (err: unknown) { 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setError((err as any)?.message || String(err)); 
+    } finally { setIsSubmitting(false); }
   };
 
   return (
