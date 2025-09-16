@@ -34,21 +34,39 @@ export default function AddClientModal({ isOpen, onClose, onSuccess }: AddClient
     }
 
     try {
-      let imageAsset: SanityImageAssetDocument | undefined = undefined;
+      // If an image exists, convert it to base64 and include metadata so the server can upload with the write token
+      let imageBase64: string | undefined = undefined;
+      let imageName: string | undefined = undefined;
+      let imageType: string | undefined = undefined;
       if (image) {
-        // Upload the image asset to Sanity
-        imageAsset = await client.assets.upload('image', image);
+        imageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onerror = () => {
+            reader.abort();
+            reject(new Error('Failed to read image file'));
+          };
+          reader.onload = () => {
+            resolve(String(reader.result));
+          };
+          reader.readAsDataURL(image);
+        });
+        imageName = image.name;
+        imageType = image.type;
       }
 
       // Prepare the payload for our API route
-      const clientData = {
+      const clientData: any = {
         first_name: firstName,
         last_name: lastName,
         email,
         contact,
         address,
-        imageAssetId: imageAsset?._id, // Send only the ID
       };
+      if (imageBase64) {
+        clientData.imageBase64 = imageBase64; // data:<type>;base64,<data>
+        clientData.imageName = imageName;
+        clientData.imageType = imageType;
+      }
 
       // Send the data to our secure backend endpoint
       const response = await fetch('/api/add-client', {
