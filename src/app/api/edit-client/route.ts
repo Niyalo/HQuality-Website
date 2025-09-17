@@ -26,7 +26,13 @@ export async function PUT(request: Request) {
     if (agentId) patch.set({ agent: { _type: 'reference', _ref: agentId } }); else patch.unset(['agent']);
     if (imageAssetId) patch.set({ user_img: { _type: 'image', asset: { _type: 'reference', _ref: imageAssetId }}});
     if (contracts) {
-      const contractReferences = contracts.map((contract: any) => ({
+      type ContractInput = {
+        _key?: string;
+        title: string;
+        file: { asset: { _ref: string } };
+      };
+
+      const contractReferences = contracts.map((contract: ContractInput) => ({
         _key: contract._key || uuidv4(),
         _type: 'contract',
         title: contract.title,
