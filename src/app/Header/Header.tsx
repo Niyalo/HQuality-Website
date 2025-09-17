@@ -1,171 +1,133 @@
 "use client";
-import { useEffect, useState } from "react";
-import React from "react";
-import Image from 'next/image';
+
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-
-
-
-
+import { usePathname } from "next/navigation"; // Hook to detect the current page
 
 const Header = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname(); // Get the current URL path
 
-  
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(!isOpen);
-  
+  // This effect closes the mobile menu if the user resizes the window to be larger
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // md breakpoint in Tailwind
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
+  const navLinks = [
+    { href: "/properties", label: "Properties" },
+    { href: "/clients", label: "Clients" },
+    { href: "/agents", label: "Agents" }, // Or "/users" if that's the correct path
+  ];
 
   return (
-    <header className="bg-white dark:bg-gray-900">
-  <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-    <div className="flex h-16 items-center justify-between">
-      <div className="flex-1 md:flex md:items-center md:gap-12">
-        <a className="block text-teal-600 dark:text-teal-300" href="#">
-          <span className="sr-only">Home</span>
-          <div className="text-2xl">Agent Dashboard</div>
-        </a>
-      </div>
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo / Brand Name */}
+          <div className="flex-1 md:flex md:items-center md:gap-12">
+            <Link className="block text-teal-600 dark:text-teal-300" href="/">
+              <span className="sr-only">Home</span>
+              <div className="text-2xl font-bold">Agent Dashboard</div>
+            </Link>
+          </div>
 
-      <div className="md:flex md:items-center md:gap-12">
-        <nav aria-label="Global" className="hidden md:block">
-          <ul className="flex items-center gap-6 text-sm">
-            <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                
-              >
-                                <Link href= "/properties">Properties</Link>
-
-              </a>
-            </li>
-
-            <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-              >
-                <Link href= "/clients">Clients</Link>
-              </a>
-            </li>
-
-            <li>
-              <a
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href=""
-              >
-                <Link href={"/agents"}>Agents</Link>
-              </a>
-            </li>
-
-            
-            
-          </ul>
-        </nav>
-
-        <div className="relative hidden md:block">
-          <button
-            type="button"
-            className="overflow-hidden rounded-full border border-gray-300 shadow-inner dark:border-gray-600"
-          >
-            <span className="sr-only">Toggle dashboard menu</span>
-
-            
-              <Image
-                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt=""
-                width={40}
-                height={40}
-                className="size-10 object-cover"
-                onClick={toggleMenu}
-              />
-            
-            
-          </button>
-
-          {isOpen && (
-            <div
-            className=" absolute end-0 z-10 mt-0.5 w-56 rounded-md border border-gray-100 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
-            role="menu"
-          >
-            <div className="p-2">
-              <a
-                href="#"
-                className="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                role="menuitem"
-              >
-                My profile
-              </a>
-
-              <a
-                href="#"
-                className="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                role="menuitem"
-              >
-                My data
-              </a>
-
-              <a
-                href="#"
-                className="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                role="menuitem"
-              >
-                Team settings
-              </a>
-
-              <form method="POST" action="#">
-                <button
-                  type="submit"
-                  className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50 dark:text-red-500 dark:hover:bg-red-600/10"
-                  role="menuitem"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    className="size-4"
+          {/* Desktop Navigation */}
+          <nav aria-label="Global" className="hidden md:block">
+            <ul className="flex items-center gap-6 text-sm">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    className={`transition hover:text-gray-500/75 dark:hover:text-white/75 ${
+                      pathname === link.href
+                        ? "text-teal-600 dark:text-teal-400 font-semibold"
+                        : "text-gray-500 dark:text-white"
+                    }`}
+                    href={link.href}
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
-                    />
-                  </svg>
-
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          
+          <div className="flex items-center gap-4">
+            {/* Logout Button (Visible on all screen sizes) */}
+            <div className="hidden sm:flex">
+                <button
+                  type="button"
+                  // Add your logout logic to onClick
+                  onClick={() => alert('Logout clicked!')}
+                  className="rounded-md bg-blue-600 px-5 py-2.5 ml-5 text-sm font-medium text-white shadow transition hover:bg-red-700"
+                >
                   Logout
                 </button>
-              </form>
+            </div>
+
+            {/* Mobile Menu Button (Hamburger) */}
+            <div className="block md:hidden">
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75 dark:bg-gray-800 dark:text-white dark:hover:text-white/75"
+                aria-controls="mobile-menu"
+                aria-expanded={isMobileMenuOpen}
+              >
+                <span className="sr-only">Toggle menu</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
             </div>
           </div>
-          )}
-
-        
-            
-
-          {/* <div className="block md:hidden">
-            <button
-              className="rounded-sm bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75 dark:bg-gray-800 dark:text-white dark:hover:text-white/75"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="size-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div> */}
         </div>
       </div>
-    </div>
-  </div>
-</header>
 
-  )
-}
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div id="mobile-menu" className="md:hidden border-t border-gray-200 dark:border-gray-800">
+          <nav aria-label="Mobile Global" className="p-4 space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setIsMobileMenuOpen(false)} // Close menu on link click
+                className={`block rounded-lg px-4 py-2 text-base transition ${
+                  pathname === link.href
+                    ? "bg-teal-50 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300 font-semibold"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+            {/* Mobile Logout Button */}
+            <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => alert('Logout clicked!')}
+                  className="w-full rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow transition hover:bg-red-700"
+                >
+                  Logout
+                </button>
+            </div>
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+};
 
-export default Header
+export default Header;
